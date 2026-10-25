@@ -65,6 +65,26 @@ class TestChronosMatch(unittest.TestCase):
             engine.trade_history[0]["quantity"], 5
         )
 
+    def test_cancel_order(self):
+        engine = ChronosMatch()
+        engine.add_order("BUY", 100, 10)
+        engine.add_order("BUY", 90, 5)
+
+        result = engine.cancel_order("BUY", 90)
+
+        self.assertTrue(result)
+        self.assertEqual(
+            engine.buy_orders,
+            [{"price": 100, "quantity": 10}]
+        )
+
+    def test_cancel_nonexistent_order(self):
+        engine = ChronosMatch()
+
+        result = engine.cancel_order("BUY", 90)
+
+        self.assertFalse(result)
+
 
 if __name__ == "__main__":
     unittest.main()

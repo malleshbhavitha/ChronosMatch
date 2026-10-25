@@ -25,19 +25,12 @@ class ChronosMatch:
             "price": price,
             "quantity": quantity
         }
-
         self.trade_history.append(trade)
 
-        print(
-            f"Trade executed: {quantity} units "
-            f"at {price}"
-        )
+        print(f"Trade executed: {quantity} units at {price}")
 
     def match_buy(self, price, quantity):
-        # Lowest sell price gets priority
-        self.sell_orders.sort(
-            key=lambda order: order["price"]
-        )
+        self.sell_orders.sort(key=lambda order: order["price"])
 
         while self.sell_orders and quantity > 0:
             sell = self.sell_orders[0]
@@ -46,7 +39,6 @@ class ChronosMatch:
                 break
 
             traded = min(quantity, sell["quantity"])
-
             self.record_trade("BUY", sell["price"], traded)
 
             quantity -= traded
@@ -61,14 +53,12 @@ class ChronosMatch:
                 "quantity": quantity
             })
 
-        # Highest buy price gets priority
         self.buy_orders.sort(
             key=lambda order: order["price"],
             reverse=True
         )
 
     def match_sell(self, price, quantity):
-        # Highest buy price gets priority
         self.buy_orders.sort(
             key=lambda order: order["price"],
             reverse=True
@@ -81,7 +71,6 @@ class ChronosMatch:
                 break
 
             traded = min(quantity, buy["quantity"])
-
             self.record_trade("SELL", buy["price"], traded)
 
             quantity -= traded
@@ -96,10 +85,26 @@ class ChronosMatch:
                 "quantity": quantity
             })
 
-        # Lowest sell price gets priority
-        self.sell_orders.sort(
-            key=lambda order: order["price"]
-        )
+        self.sell_orders.sort(key=lambda order: order["price"])
+
+    def cancel_order(self, order_type, price):
+        order_type = order_type.strip().upper()
+
+        if order_type == "BUY":
+            orders = self.buy_orders
+        elif order_type == "SELL":
+            orders = self.sell_orders
+        else:
+            raise ValueError("Order type must be BUY or SELL")
+
+        for order in orders:
+            if order["price"] == price:
+                orders.remove(order)
+                print(f"{order_type} order at {price} cancelled.")
+                return True
+
+        print(f"No {order_type} order found at price {price}.")
+        return False
 
     def show_order_book(self):
         print("\nRemaining BUY orders:", self.buy_orders)
@@ -112,12 +117,9 @@ class ChronosMatch:
             print("No trades executed yet.")
             return
 
-        for number, trade in enumerate(
-            self.trade_history, start=1
-        ):
+        for number, trade in enumerate(self.trade_history, start=1):
             print(
-                f"{number}. Incoming order: "
-                f"{trade['incoming_order']}, "
+                f"{number}. Incoming order: {trade['incoming_order']}, "
                 f"Price: {trade['price']}, "
                 f"Quantity: {trade['quantity']}"
             )
@@ -127,10 +129,14 @@ if __name__ == "__main__":
     engine = ChronosMatch()
 
     engine.add_order("BUY", 100, 10)
-    engine.add_order("SELL", 95, 5)
-    engine.add_order("SELL", 100, 3)
+    engine.add_order("BUY", 90, 5)
+    engine.add_order("SELL", 110, 3)
+
+    engine.show_order_book()
+
+    # Cancel the BUY order at price 90
+    engine.cancel_order("BUY", 90)
 
     engine.show_order_book()
     engine.show_trade_history()
-
 
