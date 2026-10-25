@@ -52,6 +52,20 @@ class TestChronosMatch(unittest.TestCase):
         with self.assertRaises(ValueError):
             engine.add_order("HOLD", 100, 1)
 
+    def test_trade_history(self):
+        engine = ChronosMatch()
+        engine.add_order("BUY", 100, 10)
+        engine.add_order("SELL", 95, 5)
+
+        self.assertEqual(len(engine.trade_history), 1)
+        self.assertEqual(
+            engine.trade_history[0]["price"], 100
+        )
+        self.assertEqual(
+            engine.trade_history[0]["quantity"], 5
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
+
