@@ -1,4 +1,5 @@
 
+
 import unittest
 from io import StringIO
 from contextlib import redirect_stdout
@@ -15,7 +16,7 @@ class TestChronosMatch(unittest.TestCase):
 
         self.assertEqual(
             engine.buy_orders,
-            [{"order_id": 1, "price": 100, "quantity": 5}]
+            [{"order_id": 1, "price": 100, "quantity": 5}],
         )
         self.assertEqual(engine.sell_orders, [])
 
@@ -27,7 +28,7 @@ class TestChronosMatch(unittest.TestCase):
         self.assertEqual(engine.buy_orders, [])
         self.assertEqual(
             engine.sell_orders,
-            [{"order_id": 2, "price": 90, "quantity": 2}]
+            [{"order_id": 2, "price": 90, "quantity": 2}],
         )
 
     def test_price_priority(self):
@@ -37,7 +38,7 @@ class TestChronosMatch(unittest.TestCase):
 
         self.assertEqual(
             [order["price"] for order in engine.buy_orders],
-            [100, 95]
+            [100, 95],
         )
 
     def test_invalid_quantity(self):
@@ -127,6 +128,18 @@ class TestChronosMatch(unittest.TestCase):
             engine.show_order_book()
 
         self.assertIn("No pending orders.", output.getvalue())
+
+    def test_nan_price_rejected(self):
+        engine = ChronosMatch()
+
+        with self.assertRaises(ValueError):
+            engine.add_order("BUY", float("nan"), 1)
+
+    def test_infinite_price_rejected(self):
+        engine = ChronosMatch()
+
+        with self.assertRaises(ValueError):
+            engine.add_order("BUY", float("inf"), 1)
 
 
 if __name__ == "__main__":
