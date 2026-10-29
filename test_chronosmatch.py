@@ -1,5 +1,4 @@
 
-
 import unittest
 from io import StringIO
 from contextlib import redirect_stdout
@@ -43,19 +42,16 @@ class TestChronosMatch(unittest.TestCase):
 
     def test_invalid_quantity(self):
         engine = ChronosMatch()
-
         with self.assertRaises(ValueError):
             engine.add_order("BUY", 100, 0)
 
     def test_invalid_price(self):
         engine = ChronosMatch()
-
         with self.assertRaises(ValueError):
             engine.add_order("BUY", -100, 2)
 
     def test_invalid_order_type(self):
         engine = ChronosMatch()
-
         with self.assertRaises(ValueError):
             engine.add_order("HOLD", 100, 1)
 
@@ -79,7 +75,6 @@ class TestChronosMatch(unittest.TestCase):
 
     def test_cancel_nonexistent_order(self):
         engine = ChronosMatch()
-
         self.assertFalse(engine.cancel_order(999))
 
     def test_unique_order_ids(self):
@@ -97,9 +92,7 @@ class TestChronosMatch(unittest.TestCase):
         engine.cancel_order(second_id)
 
         self.assertEqual(len(engine.buy_orders), 1)
-        self.assertEqual(
-            engine.buy_orders[0]["order_id"], first_id
-        )
+        self.assertEqual(engine.buy_orders[0]["order_id"], first_id)
 
     def test_order_book_display(self):
         engine = ChronosMatch()
@@ -107,12 +100,10 @@ class TestChronosMatch(unittest.TestCase):
         engine.add_order("SELL", 110, 5)
 
         output = StringIO()
-
         with redirect_stdout(output):
             engine.show_order_book()
 
         result = output.getvalue()
-
         self.assertIn("BUY ORDERS", result)
         self.assertIn("SELL ORDERS", result)
         self.assertIn("ORDER ID", result)
@@ -131,15 +122,42 @@ class TestChronosMatch(unittest.TestCase):
 
     def test_nan_price_rejected(self):
         engine = ChronosMatch()
-
         with self.assertRaises(ValueError):
             engine.add_order("BUY", float("nan"), 1)
 
     def test_infinite_price_rejected(self):
         engine = ChronosMatch()
-
         with self.assertRaises(ValueError):
             engine.add_order("BUY", float("inf"), 1)
+
+    def test_exact_quantity_match(self):
+        engine = ChronosMatch()
+        engine.add_order("BUY", 100, 5)
+        engine.add_order("SELL", 100, 5)
+
+        self.assertEqual(engine.buy_orders, [])
+        self.assertEqual(engine.sell_orders, [])
+        self.assertEqual(len(engine.trade_history), 1)
+        self.assertEqual(engine.trade_history[0]["quantity"], 5)
+
+    def test_sell_matches_multiple_buy_orders(self):
+        engine = ChronosMatch()
+        engine.add_order("BUY", 100, 3)
+        engine.add_order("BUY", 100, 4)
+        engine.add_order("SELL", 100, 5)
+
+        self.assertEqual(len(engine.buy_orders), 1)
+        self.assertEqual(engine.buy_orders[0]["quantity"], 2)
+        self.assertEqual(len(engine.trade_history), 2)
+
+    def test_non_matching_orders_remain_pending(self):
+        engine = ChronosMatch()
+        engine.add_order("BUY", 90, 3)
+        engine.add_order("SELL", 100, 4)
+
+        self.assertEqual(len(engine.buy_orders), 1)
+        self.assertEqual(len(engine.sell_orders), 1)
+        self.assertEqual(engine.trade_history, [])
 
 
 if __name__ == "__main__":
