@@ -39,6 +39,7 @@ class ChronosMatch:
             "price": price,
             "quantity": quantity,
         }
+
         self.next_order_id += 1
 
         if order_type == "BUY":
@@ -54,10 +55,12 @@ class ChronosMatch:
             "price": price,
             "quantity": quantity,
         })
+
         print(f"Trade executed: {quantity} units at {price}")
 
     def match_buy(self, order, quantity):
         price = order["price"]
+
         self.sell_orders.sort(key=lambda item: item["price"])
 
         while self.sell_orders and quantity > 0:
@@ -67,6 +70,7 @@ class ChronosMatch:
                 break
 
             traded = min(quantity, sell["quantity"])
+
             self.record_trade("BUY", sell["price"], traded)
 
             quantity -= traded
@@ -89,6 +93,7 @@ class ChronosMatch:
 
     def match_sell(self, order, quantity):
         price = order["price"]
+
         self.buy_orders.sort(
             key=lambda item: item["price"],
             reverse=True,
@@ -101,6 +106,7 @@ class ChronosMatch:
                 break
 
             traded = min(quantity, buy["quantity"])
+
             self.record_trade("SELL", buy["price"], traded)
 
             quantity -= traded
@@ -132,18 +138,45 @@ class ChronosMatch:
         print(f"Order {order_id} not found.")
         return False
 
+    # Day 9: Order Book Summary
+    def get_order_book_summary(self):
+        best_buy = (
+            self.buy_orders[0]["price"]
+            if self.buy_orders else None
+        )
+
+        best_sell = (
+            self.sell_orders[0]["price"]
+            if self.sell_orders else None
+        )
+
+        spread = (
+            best_sell - best_buy
+            if best_buy is not None and best_sell is not None
+            else None
+        )
+
+        return {
+            "total_buy_orders": len(self.buy_orders),
+            "total_sell_orders": len(self.sell_orders),
+            "best_buy_price": best_buy,
+            "best_sell_price": best_sell,
+            "bid_ask_spread": spread,
+        }
+
+    # Improved Order Book Display
     def show_order_book(self):
-        print("\n" + "=" * 45)
-        print("          CHRONOSMATCH ORDER BOOK")
-        print("=" * 45)
+        print("\n" + "=" * 55)
+        print("              CHRONOSMATCH ORDER BOOK")
+        print("=" * 55)
 
         for title, orders in (
             ("BUY ORDERS", self.buy_orders),
             ("SELL ORDERS", self.sell_orders),
         ):
             print(f"\n{title}")
-            print("-" * 45)
-            print(f"{'ORDER ID':<12}{'PRICE':<15}{'QUANTITY':<12}")
+            print("-" * 55)
+            print(f"{'ORDER ID':<12}{'PRICE':<18}{'QUANTITY':<12}")
 
             if not orders:
                 print("No pending orders.")
@@ -152,11 +185,25 @@ class ChronosMatch:
             for order in orders:
                 print(
                     f"{order['order_id']:<12}"
-                    f"{order['price']:<15}"
+                    f"{order['price']:<18}"
                     f"{order['quantity']:<12}"
                 )
 
-        print("\n" + "=" * 45)
+        summary = self.get_order_book_summary()
+
+        print("\nORDER BOOK SUMMARY")
+        print("-" * 55)
+        print("Total BUY orders:", summary["total_buy_orders"])
+        print("Total SELL orders:", summary["total_sell_orders"])
+        print("Best BUY price:", summary["best_buy_price"])
+        print("Best SELL price:", summary["best_sell_price"])
+
+        if summary["bid_ask_spread"] is not None:
+            print("Bid-Ask Spread:", summary["bid_ask_spread"])
+        else:
+            print("Bid-Ask Spread: Not available")
+
+        print("\n" + "=" * 55)
 
     def show_trade_history(self):
         print("\nCHRONOSMATCH TRADE HISTORY")

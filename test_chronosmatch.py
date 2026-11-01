@@ -1,4 +1,5 @@
 
+
 import unittest
 from io import StringIO
 from contextlib import redirect_stdout
@@ -100,10 +101,12 @@ class TestChronosMatch(unittest.TestCase):
         engine.add_order("SELL", 110, 5)
 
         output = StringIO()
+
         with redirect_stdout(output):
             engine.show_order_book()
 
         result = output.getvalue()
+
         self.assertIn("BUY ORDERS", result)
         self.assertIn("SELL ORDERS", result)
         self.assertIn("ORDER ID", result)
@@ -122,11 +125,13 @@ class TestChronosMatch(unittest.TestCase):
 
     def test_nan_price_rejected(self):
         engine = ChronosMatch()
+
         with self.assertRaises(ValueError):
             engine.add_order("BUY", float("nan"), 1)
 
     def test_infinite_price_rejected(self):
         engine = ChronosMatch()
+
         with self.assertRaises(ValueError):
             engine.add_order("BUY", float("inf"), 1)
 
@@ -158,6 +163,59 @@ class TestChronosMatch(unittest.TestCase):
         self.assertEqual(len(engine.buy_orders), 1)
         self.assertEqual(len(engine.sell_orders), 1)
         self.assertEqual(engine.trade_history, [])
+
+    # Day 9: New Order Book Summary Tests
+
+    def test_order_book_summary(self):
+        engine = ChronosMatch()
+
+        engine.add_order("BUY", 100, 10)
+        engine.add_order("BUY", 95, 5)
+        engine.add_order("SELL", 110, 3)
+        engine.add_order("SELL", 115, 4)
+
+        summary = engine.get_order_book_summary()
+
+        self.assertEqual(summary["total_buy_orders"], 2)
+        self.assertEqual(summary["total_sell_orders"], 2)
+        self.assertEqual(summary["best_buy_price"], 100)
+        self.assertEqual(summary["best_sell_price"], 110)
+        self.assertEqual(summary["bid_ask_spread"], 10)
+
+    def test_empty_order_book_summary(self):
+        engine = ChronosMatch()
+
+        summary = engine.get_order_book_summary()
+
+        self.assertEqual(summary["total_buy_orders"], 0)
+        self.assertEqual(summary["total_sell_orders"], 0)
+        self.assertIsNone(summary["best_buy_price"])
+        self.assertIsNone(summary["best_sell_price"])
+        self.assertIsNone(summary["bid_ask_spread"])
+
+    def test_order_book_summary_after_cancellation(self):
+        engine = ChronosMatch()
+
+        order_id = engine.add_order("BUY", 100, 10)
+        engine.add_order("BUY", 90, 5)
+
+        engine.cancel_order(order_id)
+
+        summary = engine.get_order_book_summary()
+
+        self.assertEqual(summary["total_buy_orders"], 1)
+        self.assertEqual(summary["best_buy_price"], 90)
+
+    def test_order_book_summary_with_one_side(self):
+        engine = ChronosMatch()
+
+        engine.add_order("BUY", 100, 10)
+
+        summary = engine.get_order_book_summary()
+
+        self.assertEqual(summary["best_buy_price"], 100)
+        self.assertIsNone(summary["best_sell_price"])
+        self.assertIsNone(summary["bid_ask_spread"])
 
 
 if __name__ == "__main__":
