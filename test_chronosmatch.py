@@ -1,5 +1,6 @@
 
 
+
 import unittest
 from io import StringIO
 from contextlib import redirect_stdout
@@ -164,7 +165,7 @@ class TestChronosMatch(unittest.TestCase):
         self.assertEqual(len(engine.sell_orders), 1)
         self.assertEqual(engine.trade_history, [])
 
-    # Day 9: New Order Book Summary Tests
+    # Day 9 tests
 
     def test_order_book_summary(self):
         engine = ChronosMatch()
@@ -216,6 +217,55 @@ class TestChronosMatch(unittest.TestCase):
         self.assertEqual(summary["best_buy_price"], 100)
         self.assertIsNone(summary["best_sell_price"])
         self.assertIsNone(summary["bid_ask_spread"])
+
+    # Day 10 tests
+
+    def test_trade_summary(self):
+        engine = ChronosMatch()
+
+        engine.add_order("BUY", 100, 10)
+        engine.add_order("SELL", 95, 5)
+
+        summary = engine.get_trade_summary()
+
+        self.assertEqual(summary["total_trades"], 1)
+        self.assertEqual(summary["total_quantity"], 5)
+        self.assertEqual(summary["average_trade_price"], 95)
+
+    def test_empty_trade_summary(self):
+        engine = ChronosMatch()
+
+        summary = engine.get_trade_summary()
+
+        self.assertEqual(summary["total_trades"], 0)
+        self.assertEqual(summary["total_quantity"], 0)
+        self.assertIsNone(summary["average_trade_price"])
+
+    def test_multiple_trade_summary(self):
+        engine = ChronosMatch()
+
+        engine.add_order("BUY", 100, 5)
+        engine.add_order("SELL", 100, 5)
+        engine.add_order("BUY", 120, 3)
+        engine.add_order("SELL", 110, 3)
+
+        summary = engine.get_trade_summary()
+
+        self.assertEqual(summary["total_trades"], 2)
+        self.assertEqual(summary["total_quantity"], 8)
+        self.assertEqual(summary["average_trade_price"], 107.5)
+
+    def test_trade_summary_after_partial_matching(self):
+        engine = ChronosMatch()
+
+        engine.add_order("BUY", 100, 10)
+        engine.add_order("SELL", 90, 4)
+
+        summary = engine.get_trade_summary()
+
+        self.assertEqual(summary["total_trades"], 1)
+        self.assertEqual(summary["total_quantity"], 4)
+        self.assertEqual(summary["average_trade_price"], 90)
 
 
 if __name__ == "__main__":

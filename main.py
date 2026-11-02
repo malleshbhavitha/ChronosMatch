@@ -1,4 +1,5 @@
 
+
 import math
 
 
@@ -164,7 +165,6 @@ class ChronosMatch:
             "bid_ask_spread": spread,
         }
 
-    # Improved Order Book Display
     def show_order_book(self):
         print("\n" + "=" * 55)
         print("              CHRONOSMATCH ORDER BOOK")
@@ -205,20 +205,73 @@ class ChronosMatch:
 
         print("\n" + "=" * 55)
 
+    # Day 10: Trade History Summary
+    def get_trade_summary(self):
+        total_trades = len(self.trade_history)
+
+        total_quantity = sum(
+            trade["quantity"]
+            for trade in self.trade_history
+        )
+
+        total_value = sum(
+            trade["price"] * trade["quantity"]
+            for trade in self.trade_history
+        )
+
+        average_price = (
+            total_value / total_quantity
+            if total_quantity > 0
+            else None
+        )
+
+        return {
+            "total_trades": total_trades,
+            "total_quantity": total_quantity,
+            "average_trade_price": average_price,
+        }
+
     def show_trade_history(self):
-        print("\nCHRONOSMATCH TRADE HISTORY")
-        print("-" * 45)
+        print("\n" + "=" * 55)
+        print("             CHRONOSMATCH TRADE HISTORY")
+        print("=" * 55)
 
         if not self.trade_history:
             print("No trades executed yet.")
-            return
-
-        for number, trade in enumerate(self.trade_history, start=1):
+        else:
             print(
-                f"{number}. Incoming order: {trade['incoming_order']}, "
-                f"Price: {trade['price']}, "
-                f"Quantity: {trade['quantity']}"
+                f"{'NO.':<8}{'ORDER TYPE':<15}"
+                f"{'PRICE':<15}{'QUANTITY':<12}"
             )
+
+            print("-" * 55)
+
+            for number, trade in enumerate(
+                self.trade_history, start=1
+            ):
+                print(
+                    f"{number:<8}"
+                    f"{trade['incoming_order']:<15}"
+                    f"{trade['price']:<15}"
+                    f"{trade['quantity']:<12}"
+                )
+
+        summary = self.get_trade_summary()
+
+        print("\nTRADE SUMMARY")
+        print("-" * 55)
+        print("Total trades:", summary["total_trades"])
+        print("Total traded quantity:", summary["total_quantity"])
+
+        if summary["average_trade_price"] is not None:
+            print(
+                "Average trade price:",
+                round(summary["average_trade_price"], 2)
+            )
+        else:
+            print("Average trade price: Not available")
+
+        print("=" * 55)
 
 
 if __name__ == "__main__":
