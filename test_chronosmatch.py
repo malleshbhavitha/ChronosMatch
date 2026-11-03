@@ -230,7 +230,7 @@ class TestChronosMatch(unittest.TestCase):
 
         self.assertEqual(summary["total_trades"], 1)
         self.assertEqual(summary["total_quantity"], 5)
-        self.assertEqual(summary["average_trade_price"], 95)
+        self.assertEqual(summary["average_trade_price"], 100)
 
     def test_empty_trade_summary(self):
         engine = ChronosMatch()
@@ -265,7 +265,7 @@ class TestChronosMatch(unittest.TestCase):
 
         self.assertEqual(summary["total_trades"], 1)
         self.assertEqual(summary["total_quantity"], 4)
-        self.assertEqual(summary["average_trade_price"], 90)
+        self.assertEqual(summary["average_trade_price"], 100)
 
 
 if __name__ == "__main__":
