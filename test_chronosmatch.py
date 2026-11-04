@@ -1,6 +1,3 @@
-
-
-
 import unittest
 from io import StringIO
 from contextlib import redirect_stdout
@@ -41,6 +38,46 @@ class TestChronosMatch(unittest.TestCase):
             [order["price"] for order in engine.buy_orders],
             [100, 95],
         )
+
+    # FIFO (First In, First Out) priority tests
+
+    def test_buy_orders_follow_fifo_priority(self):
+        engine = ChronosMatch()
+
+        engine.add_order("BUY", 100, 3)
+        second_id = engine.add_order("BUY", 100, 4)
+
+        engine.add_order("SELL", 100, 5)
+
+        self.assertEqual(len(engine.buy_orders), 1)
+        self.assertEqual(
+            engine.buy_orders[0]["order_id"],
+            second_id,
+        )
+        self.assertEqual(engine.buy_orders[0]["quantity"], 2)
+
+        self.assertEqual(len(engine.trade_history), 2)
+        self.assertEqual(engine.trade_history[0]["quantity"], 3)
+        self.assertEqual(engine.trade_history[1]["quantity"], 2)
+
+    def test_sell_orders_follow_fifo_priority(self):
+        engine = ChronosMatch()
+
+        engine.add_order("SELL", 100, 3)
+        second_id = engine.add_order("SELL", 100, 4)
+
+        engine.add_order("BUY", 100, 5)
+
+        self.assertEqual(len(engine.sell_orders), 1)
+        self.assertEqual(
+            engine.sell_orders[0]["order_id"],
+            second_id,
+        )
+        self.assertEqual(engine.sell_orders[0]["quantity"], 2)
+
+        self.assertEqual(len(engine.trade_history), 2)
+        self.assertEqual(engine.trade_history[0]["quantity"], 3)
+        self.assertEqual(engine.trade_history[1]["quantity"], 2)
 
     def test_invalid_quantity(self):
         engine = ChronosMatch()

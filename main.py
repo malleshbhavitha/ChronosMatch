@@ -1,5 +1,6 @@
 
 
+
 import math
 
 
@@ -62,7 +63,10 @@ class ChronosMatch:
     def match_buy(self, order, quantity):
         price = order["price"]
 
-        self.sell_orders.sort(key=lambda item: item["price"])
+        # Lowest SELL price first; earliest order first at equal prices.
+        self.sell_orders.sort(
+            key=lambda item: (item["price"], item["order_id"])
+        )
 
         while self.sell_orders and quantity > 0:
             sell = self.sell_orders[0]
@@ -87,17 +91,17 @@ class ChronosMatch:
                 "quantity": quantity,
             })
 
+        # Highest BUY price first; earliest order first at equal prices.
         self.buy_orders.sort(
-            key=lambda item: item["price"],
-            reverse=True,
+            key=lambda item: (-item["price"], item["order_id"])
         )
 
     def match_sell(self, order, quantity):
         price = order["price"]
 
+        # Highest BUY price first; earliest order first at equal prices.
         self.buy_orders.sort(
-            key=lambda item: item["price"],
-            reverse=True,
+            key=lambda item: (-item["price"], item["order_id"])
         )
 
         while self.buy_orders and quantity > 0:
@@ -123,7 +127,10 @@ class ChronosMatch:
                 "quantity": quantity,
             })
 
-        self.sell_orders.sort(key=lambda item: item["price"])
+        # Lowest SELL price first; earliest order first at equal prices.
+        self.sell_orders.sort(
+            key=lambda item: (item["price"], item["order_id"])
+        )
 
     def cancel_order(self, order_id):
         if not isinstance(order_id, int) or isinstance(order_id, bool):
