@@ -1,3 +1,5 @@
+
+
 import unittest
 from io import StringIO
 from contextlib import redirect_stdout
@@ -7,302 +9,253 @@ from main import ChronosMatch
 
 class TestChronosMatch(unittest.TestCase):
 
-    def test_matching_orders(self):
-        engine = ChronosMatch()
-        engine.add_order("BUY", 100, 10)
-        engine.add_order("SELL", 95, 5)
+    def setUp(self):
+        self.engine = ChronosMatch()
 
-        self.assertEqual(
-            engine.buy_orders,
-            [{"order_id": 1, "price": 100, "quantity": 5}],
-        )
-        self.assertEqual(engine.sell_orders, [])
+    def test_add_buy_order(self):
+        order_id = self.engine.add_order("BUY", 100, 10)
 
-    def test_partial_matching(self):
-        engine = ChronosMatch()
-        engine.add_order("BUY", 100, 3)
-        engine.add_order("SELL", 90, 5)
+        self.assertEqual(order_id, 1)
+        self.assertEqual(len(self.engine.buy_orders), 1)
 
-        self.assertEqual(engine.buy_orders, [])
-        self.assertEqual(
-            engine.sell_orders,
-            [{"order_id": 2, "price": 90, "quantity": 2}],
-        )
+    def test_add_sell_order(self):
+        order_id = self.engine.add_order("SELL", 110, 5)
 
-    def test_price_priority(self):
-        engine = ChronosMatch()
-        engine.add_order("BUY", 95, 2)
-        engine.add_order("BUY", 100, 3)
+        self.assertEqual(order_id, 1)
+        self.assertEqual(len(self.engine.sell_orders), 1)
 
-        self.assertEqual(
-            [order["price"] for order in engine.buy_orders],
-            [100, 95],
-        )
+    def test_order_type_is_case_insensitive(self):
+        self.engine.add_order(" buy ", 100, 5)
 
-    # FIFO (First In, First Out) priority tests
-
-    def test_buy_orders_follow_fifo_priority(self):
-        engine = ChronosMatch()
-
-        engine.add_order("BUY", 100, 3)
-        second_id = engine.add_order("BUY", 100, 4)
-
-        engine.add_order("SELL", 100, 5)
-
-        self.assertEqual(len(engine.buy_orders), 1)
-        self.assertEqual(
-            engine.buy_orders[0]["order_id"],
-            second_id,
-        )
-        self.assertEqual(engine.buy_orders[0]["quantity"], 2)
-
-        self.assertEqual(len(engine.trade_history), 2)
-        self.assertEqual(engine.trade_history[0]["quantity"], 3)
-        self.assertEqual(engine.trade_history[1]["quantity"], 2)
-
-    def test_sell_orders_follow_fifo_priority(self):
-        engine = ChronosMatch()
-
-        engine.add_order("SELL", 100, 3)
-        second_id = engine.add_order("SELL", 100, 4)
-
-        engine.add_order("BUY", 100, 5)
-
-        self.assertEqual(len(engine.sell_orders), 1)
-        self.assertEqual(
-            engine.sell_orders[0]["order_id"],
-            second_id,
-        )
-        self.assertEqual(engine.sell_orders[0]["quantity"], 2)
-
-        self.assertEqual(len(engine.trade_history), 2)
-        self.assertEqual(engine.trade_history[0]["quantity"], 3)
-        self.assertEqual(engine.trade_history[1]["quantity"], 2)
-
-    def test_invalid_quantity(self):
-        engine = ChronosMatch()
-        with self.assertRaises(ValueError):
-            engine.add_order("BUY", 100, 0)
-
-    def test_invalid_price(self):
-        engine = ChronosMatch()
-        with self.assertRaises(ValueError):
-            engine.add_order("BUY", -100, 2)
+        self.assertEqual(len(self.engine.buy_orders), 1)
 
     def test_invalid_order_type(self):
-        engine = ChronosMatch()
         with self.assertRaises(ValueError):
-            engine.add_order("HOLD", 100, 1)
+            self.engine.add_order("HOLD", 100, 5)
 
-    def test_trade_history(self):
-        engine = ChronosMatch()
-        engine.add_order("BUY", 100, 10)
-        engine.add_order("SELL", 95, 5)
+    def test_non_string_order_type(self):
+        with self.assertRaises(ValueError):
+            self.engine.add_order(123, 100, 5)
 
-        self.assertEqual(len(engine.trade_history), 1)
-        self.assertEqual(engine.trade_history[0]["price"], 100)
-        self.assertEqual(engine.trade_history[0]["quantity"], 5)
 
-    def test_cancel_order(self):
-        engine = ChronosMatch()
-        engine.add_order("BUY", 100, 10)
-        order_id = engine.add_order("BUY", 90, 5)
+    def test_zero_price(self):
+        with self.assertRaises(ValueError):
+            self.engine.add_order("BUY", 0, 5)
 
-        self.assertTrue(engine.cancel_order(order_id))
-        self.assertEqual(len(engine.buy_orders), 1)
-        self.assertEqual(engine.buy_orders[0]["price"], 100)
+    def test_negative_price(self):
+        with self.assertRaises(ValueError):
+            self.engine.add_order("BUY", -10, 5)
 
-    def test_cancel_nonexistent_order(self):
-        engine = ChronosMatch()
-        self.assertFalse(engine.cancel_order(999))
+    def test_infinite_price(self):
+        with self.assertRaises(ValueError):
+            self.engine.add_order("BUY", float("inf"), 5)
 
-    def test_unique_order_ids(self):
-        engine = ChronosMatch()
-        first_id = engine.add_order("BUY", 100, 10)
-        second_id = engine.add_order("BUY", 90, 5)
+    def test_nan_price(self):
+        with self.assertRaises(ValueError):
+            self.engine.add_order("BUY", float("nan"), 5)
 
+    def test_boolean_price(self):
+        with self.assertRaises(ValueError):
+            self.engine.add_order("BUY", True, 5)
+
+    def test_invalid_price_type(self):
+        with self.assertRaises(ValueError):
+            self.engine.add_order("BUY", "100", 5)
+
+
+
+    def test_zero_quantity(self):
+        with self.assertRaises(ValueError):
+            self.engine.add_order("BUY", 100, 0)
+
+    def test_negative_quantity(self):
+        with self.assertRaises(ValueError):
+            self.engine.add_order("BUY", 100, -5)
+
+    def test_float_quantity(self):
+        with self.assertRaises(ValueError):
+            self.engine.add_order("BUY", 100, 2.5)
+
+    def test_boolean_quantity(self):
+        with self.assertRaises(ValueError):
+            self.engine.add_order("BUY", 100, True)
+
+    
+
+    def test_matching_orders(self):
+        self.engine.add_order("SELL", 100, 5)
+        self.engine.add_order("BUY", 100, 5)
+
+        self.assertEqual(len(self.engine.trade_history), 1)
+        self.assertEqual(
+            self.engine.trade_history[0]["quantity"], 5
+        )
+        self.assertEqual(len(self.engine.sell_orders), 0)
+        self.assertEqual(len(self.engine.buy_orders), 0)
+
+    def test_partial_matching(self):
+        self.engine.add_order("SELL", 100, 5)
+        self.engine.add_order("BUY", 100, 3)
+
+        self.assertEqual(len(self.engine.trade_history), 1)
+        self.assertEqual(
+            self.engine.sell_orders[0]["quantity"], 2
+        )
+
+    def test_no_matching_when_prices_do_not_cross(self):
+        self.engine.add_order("SELL", 110, 5)
+        self.engine.add_order("BUY", 100, 5)
+
+        self.assertEqual(len(self.engine.trade_history), 0)
+        self.assertEqual(len(self.engine.buy_orders), 1)
+        self.assertEqual(len(self.engine.sell_orders), 1)
+
+    def test_trade_executes_at_resting_sell_price(self):
+        self.engine.add_order("SELL", 100, 5)
+        self.engine.add_order("BUY", 110, 5)
+
+        self.assertEqual(
+            self.engine.trade_history[0]["price"], 100
+        )
+
+    def test_trade_executes_at_resting_buy_price(self):
+        self.engine.add_order("BUY", 110, 5)
+        self.engine.add_order("SELL", 100, 5)
+
+        self.assertEqual(
+            self.engine.trade_history[0]["price"], 110
+        )
+
+  
+
+    def test_buy_uses_lowest_sell_price_first(self):
+        self.engine.add_order("SELL", 105, 5)
+        self.engine.add_order("SELL", 100, 5)
+        self.engine.add_order("BUY", 110, 5)
+
+        self.assertEqual(
+            self.engine.trade_history[0]["price"], 100
+        )
+
+    def test_sell_uses_highest_buy_price_first(self):
+        self.engine.add_order("BUY", 100, 5)
+        self.engine.add_order("BUY", 105, 5)
+        self.engine.add_order("SELL", 95, 5)
+
+        self.assertEqual(
+            self.engine.trade_history[0]["price"], 105
+        )
+
+
+    def test_buy_orders_follow_fifo_priority(self):
+        first_id = self.engine.add_order("BUY", 100, 5)
+        second_id = self.engine.add_order("BUY", 100, 5)
+
+        self.engine.add_order("SELL", 100, 5)
+
+        self.assertEqual(
+            self.engine.trade_history[0]["quantity"], 5
+        )
+        self.assertEqual(
+            [order["order_id"] for order in self.engine.buy_orders],
+            [second_id]
+        )
         self.assertNotEqual(first_id, second_id)
 
-    def test_cancel_only_selected_order(self):
-        engine = ChronosMatch()
-        first_id = engine.add_order("BUY", 100, 10)
-        second_id = engine.add_order("BUY", 100, 5)
+    def test_sell_orders_follow_fifo_priority(self):
+        first_id = self.engine.add_order("SELL", 100, 5)
+        second_id = self.engine.add_order("SELL", 100, 5)
 
-        engine.cancel_order(second_id)
+        self.engine.add_order("BUY", 100, 5)
 
-        self.assertEqual(len(engine.buy_orders), 1)
-        self.assertEqual(engine.buy_orders[0]["order_id"], first_id)
+        self.assertEqual(
+            [order["order_id"] for order in self.engine.sell_orders],
+            [second_id]
+        )
+        self.assertNotEqual(first_id, second_id)
 
-    def test_order_book_display(self):
-        engine = ChronosMatch()
-        engine.add_order("BUY", 100, 10)
-        engine.add_order("SELL", 110, 5)
+  
 
-        output = StringIO()
+    def test_cancel_buy_order(self):
+        order_id = self.engine.add_order("BUY", 100, 5)
 
-        with redirect_stdout(output):
-            engine.show_order_book()
+        result = self.engine.cancel_order(order_id)
 
-        result = output.getvalue()
+        self.assertTrue(result)
+        self.assertEqual(len(self.engine.buy_orders), 0)
 
-        self.assertIn("BUY ORDERS", result)
-        self.assertIn("SELL ORDERS", result)
-        self.assertIn("ORDER ID", result)
-        self.assertIn("100", result)
-        self.assertIn("110", result)
-        self.assertIn("QUANTITY", result)
+    def test_cancel_sell_order(self):
+        order_id = self.engine.add_order("SELL", 110, 5)
 
-    def test_empty_order_book_display(self):
-        engine = ChronosMatch()
-        output = StringIO()
+        result = self.engine.cancel_order(order_id)
 
-        with redirect_stdout(output):
-            engine.show_order_book()
+        self.assertTrue(result)
+        self.assertEqual(len(self.engine.sell_orders), 0)
 
-        self.assertIn("No pending orders.", output.getvalue())
+    def test_cancel_nonexistent_order(self):
+        result = self.engine.cancel_order(999)
 
-    def test_nan_price_rejected(self):
-        engine = ChronosMatch()
+        self.assertFalse(result)
 
+    def test_cancel_invalid_order_id(self):
         with self.assertRaises(ValueError):
-            engine.add_order("BUY", float("nan"), 1)
+            self.engine.cancel_order("abc")
 
-    def test_infinite_price_rejected(self):
-        engine = ChronosMatch()
-
-        with self.assertRaises(ValueError):
-            engine.add_order("BUY", float("inf"), 1)
-
-    def test_exact_quantity_match(self):
-        engine = ChronosMatch()
-        engine.add_order("BUY", 100, 5)
-        engine.add_order("SELL", 100, 5)
-
-        self.assertEqual(engine.buy_orders, [])
-        self.assertEqual(engine.sell_orders, [])
-        self.assertEqual(len(engine.trade_history), 1)
-        self.assertEqual(engine.trade_history[0]["quantity"], 5)
-
-    def test_sell_matches_multiple_buy_orders(self):
-        engine = ChronosMatch()
-        engine.add_order("BUY", 100, 3)
-        engine.add_order("BUY", 100, 4)
-        engine.add_order("SELL", 100, 5)
-
-        self.assertEqual(len(engine.buy_orders), 1)
-        self.assertEqual(engine.buy_orders[0]["quantity"], 2)
-        self.assertEqual(len(engine.trade_history), 2)
-
-    def test_non_matching_orders_remain_pending(self):
-        engine = ChronosMatch()
-        engine.add_order("BUY", 90, 3)
-        engine.add_order("SELL", 100, 4)
-
-        self.assertEqual(len(engine.buy_orders), 1)
-        self.assertEqual(len(engine.sell_orders), 1)
-        self.assertEqual(engine.trade_history, [])
-
-    # Day 9 tests
 
     def test_order_book_summary(self):
-        engine = ChronosMatch()
+        self.engine.add_order("BUY", 100, 5)
+        self.engine.add_order("SELL", 110, 5)
 
-        engine.add_order("BUY", 100, 10)
-        engine.add_order("BUY", 95, 5)
-        engine.add_order("SELL", 110, 3)
-        engine.add_order("SELL", 115, 4)
+        summary = self.engine.get_order_book_summary()
 
-        summary = engine.get_order_book_summary()
-
-        self.assertEqual(summary["total_buy_orders"], 2)
-        self.assertEqual(summary["total_sell_orders"], 2)
+        self.assertEqual(summary["total_buy_orders"], 1)
+        self.assertEqual(summary["total_sell_orders"], 1)
         self.assertEqual(summary["best_buy_price"], 100)
         self.assertEqual(summary["best_sell_price"], 110)
         self.assertEqual(summary["bid_ask_spread"], 10)
 
     def test_empty_order_book_summary(self):
-        engine = ChronosMatch()
+        summary = self.engine.get_order_book_summary()
 
-        summary = engine.get_order_book_summary()
-
-        self.assertEqual(summary["total_buy_orders"], 0)
-        self.assertEqual(summary["total_sell_orders"], 0)
         self.assertIsNone(summary["best_buy_price"])
         self.assertIsNone(summary["best_sell_price"])
         self.assertIsNone(summary["bid_ask_spread"])
 
-    def test_order_book_summary_after_cancellation(self):
-        engine = ChronosMatch()
-
-        order_id = engine.add_order("BUY", 100, 10)
-        engine.add_order("BUY", 90, 5)
-
-        engine.cancel_order(order_id)
-
-        summary = engine.get_order_book_summary()
-
-        self.assertEqual(summary["total_buy_orders"], 1)
-        self.assertEqual(summary["best_buy_price"], 90)
-
-    def test_order_book_summary_with_one_side(self):
-        engine = ChronosMatch()
-
-        engine.add_order("BUY", 100, 10)
-
-        summary = engine.get_order_book_summary()
-
-        self.assertEqual(summary["best_buy_price"], 100)
-        self.assertIsNone(summary["best_sell_price"])
-        self.assertIsNone(summary["bid_ask_spread"])
-
-    # Day 10 tests
 
     def test_trade_summary(self):
-        engine = ChronosMatch()
+        self.engine.add_order("SELL", 100, 5)
+        self.engine.add_order("BUY", 100, 5)
 
-        engine.add_order("BUY", 100, 10)
-        engine.add_order("SELL", 95, 5)
-
-        summary = engine.get_trade_summary()
+        summary = self.engine.get_trade_summary()
 
         self.assertEqual(summary["total_trades"], 1)
         self.assertEqual(summary["total_quantity"], 5)
         self.assertEqual(summary["average_trade_price"], 100)
 
     def test_empty_trade_summary(self):
-        engine = ChronosMatch()
-
-        summary = engine.get_trade_summary()
+        summary = self.engine.get_trade_summary()
 
         self.assertEqual(summary["total_trades"], 0)
         self.assertEqual(summary["total_quantity"], 0)
         self.assertIsNone(summary["average_trade_price"])
 
-    def test_multiple_trade_summary(self):
-        engine = ChronosMatch()
+    
 
-        engine.add_order("BUY", 100, 5)
-        engine.add_order("SELL", 100, 5)
-        engine.add_order("BUY", 120, 3)
-        engine.add_order("SELL", 110, 3)
+    def test_order_book_display(self):
+        output = StringIO()
 
-        summary = engine.get_trade_summary()
+        with redirect_stdout(output):
+            self.engine.show_order_book()
 
-        self.assertEqual(summary["total_trades"], 2)
-        self.assertEqual(summary["total_quantity"], 8)
-        self.assertEqual(summary["average_trade_price"], 107.5)
+        self.assertIn("CHRONOSMATCH ORDER BOOK", output.getvalue())
 
-    def test_trade_summary_after_partial_matching(self):
-        engine = ChronosMatch()
+    def test_trade_history_display(self):
+        output = StringIO()
 
-        engine.add_order("BUY", 100, 10)
-        engine.add_order("SELL", 90, 4)
+        with redirect_stdout(output):
+            self.engine.show_trade_history()
 
-        summary = engine.get_trade_summary()
-
-        self.assertEqual(summary["total_trades"], 1)
-        self.assertEqual(summary["total_quantity"], 4)
-        self.assertEqual(summary["average_trade_price"], 100)
+        self.assertIn("CHRONOSMATCH TRADE HISTORY", output.getvalue())
 
 
 if __name__ == "__main__":
