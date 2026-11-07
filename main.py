@@ -1,7 +1,9 @@
 
 
 
+
 import math
+from datetime import datetime, timezone
 
 
 class ChronosMatch:
@@ -10,6 +12,11 @@ class ChronosMatch:
         self.sell_orders = []
         self.trade_history = []
         self.next_order_id = 1
+
+    def current_timestamp(self):
+        return datetime.now(timezone.utc).isoformat(
+            timespec="milliseconds"
+        )
 
     def add_order(self, order_type, price, quantity):
         if not isinstance(order_type, str):
@@ -40,6 +47,7 @@ class ChronosMatch:
             "order_id": self.next_order_id,
             "price": price,
             "quantity": quantity,
+            "timestamp": self.current_timestamp(),
         }
 
         self.next_order_id += 1
@@ -56,6 +64,7 @@ class ChronosMatch:
             "incoming_order": order_type,
             "price": price,
             "quantity": quantity,
+            "timestamp": self.current_timestamp(),
         })
 
         print(f"Trade executed: {quantity} units at {price}")
@@ -63,7 +72,6 @@ class ChronosMatch:
     def match_buy(self, order, quantity):
         price = order["price"]
 
-        # Lowest SELL price first; earliest order first at equal prices.
         self.sell_orders.sort(
             key=lambda item: (item["price"], item["order_id"])
         )
@@ -89,9 +97,9 @@ class ChronosMatch:
                 "order_id": order["order_id"],
                 "price": price,
                 "quantity": quantity,
+                "timestamp": order["timestamp"],
             })
 
-        # Highest BUY price first; earliest order first at equal prices.
         self.buy_orders.sort(
             key=lambda item: (-item["price"], item["order_id"])
         )
@@ -99,7 +107,6 @@ class ChronosMatch:
     def match_sell(self, order, quantity):
         price = order["price"]
 
-        # Highest BUY price first; earliest order first at equal prices.
         self.buy_orders.sort(
             key=lambda item: (-item["price"], item["order_id"])
         )
@@ -125,9 +132,9 @@ class ChronosMatch:
                 "order_id": order["order_id"],
                 "price": price,
                 "quantity": quantity,
+                "timestamp": order["timestamp"],
             })
 
-        # Lowest SELL price first; earliest order first at equal prices.
         self.sell_orders.sort(
             key=lambda item: (item["price"], item["order_id"])
         )
@@ -146,7 +153,6 @@ class ChronosMatch:
         print(f"Order {order_id} not found.")
         return False
 
-    # Day 9: Order Book Summary
     def get_order_book_summary(self):
         best_buy = (
             self.buy_orders[0]["price"]
@@ -173,17 +179,23 @@ class ChronosMatch:
         }
 
     def show_order_book(self):
-        print("\n" + "=" * 55)
-        print("              CHRONOSMATCH ORDER BOOK")
-        print("=" * 55)
+        print("\n" + "=" * 110)
+        print("                         CHRONOSMATCH ORDER BOOK")
+        print("=" * 110)
 
         for title, orders in (
             ("BUY ORDERS", self.buy_orders),
             ("SELL ORDERS", self.sell_orders),
         ):
             print(f"\n{title}")
-            print("-" * 55)
-            print(f"{'ORDER ID':<12}{'PRICE':<18}{'QUANTITY':<12}")
+            print("-" * 110)
+
+            print(
+                f"{'ORDER ID':<12}"
+                f"{'PRICE':<15}"
+                f"{'QUANTITY':<12}"
+                f"{'TIMESTAMP (UTC)':<35}"
+            )
 
             if not orders:
                 print("No pending orders.")
@@ -192,8 +204,9 @@ class ChronosMatch:
             for order in orders:
                 print(
                     f"{order['order_id']:<12}"
-                    f"{order['price']:<18}"
+                    f"{order['price']:<15}"
                     f"{order['quantity']:<12}"
+                    f"{order['timestamp']:<35}"
                 )
 
         summary = self.get_order_book_summary()
@@ -210,9 +223,8 @@ class ChronosMatch:
         else:
             print("Bid-Ask Spread: Not available")
 
-        print("\n" + "=" * 55)
+        print("\n" + "=" * 110)
 
-    # Day 10: Trade History Summary
     def get_trade_summary(self):
         total_trades = len(self.trade_history)
 
@@ -239,19 +251,22 @@ class ChronosMatch:
         }
 
     def show_trade_history(self):
-        print("\n" + "=" * 55)
-        print("             CHRONOSMATCH TRADE HISTORY")
-        print("=" * 55)
+        print("\n" + "=" * 110)
+        print("                         CHRONOSMATCH TRADE HISTORY")
+        print("=" * 110)
 
         if not self.trade_history:
             print("No trades executed yet.")
         else:
             print(
-                f"{'NO.':<8}{'ORDER TYPE':<15}"
-                f"{'PRICE':<15}{'QUANTITY':<12}"
+                f"{'NO.':<8}"
+                f"{'ORDER TYPE':<15}"
+                f"{'PRICE':<15}"
+                f"{'QUANTITY':<12}"
+                f"{'TIMESTAMP (UTC)':<35}"
             )
 
-            print("-" * 55)
+            print("-" * 110)
 
             for number, trade in enumerate(
                 self.trade_history, start=1
@@ -261,6 +276,7 @@ class ChronosMatch:
                     f"{trade['incoming_order']:<15}"
                     f"{trade['price']:<15}"
                     f"{trade['quantity']:<12}"
+                    f"{trade['timestamp']:<35}"
                 )
 
         summary = self.get_trade_summary()
@@ -278,7 +294,7 @@ class ChronosMatch:
         else:
             print("Average trade price: Not available")
 
-        print("=" * 55)
+        print("=" * 110)
 
 
 if __name__ == "__main__":

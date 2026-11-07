@@ -1,126 +1,547 @@
-<!doctype html>
+
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ChronosMatch | Trading Engine Demo</title>
-  <style>
-    :root { color-scheme: dark; --bg:#0b1220; --panel:#131e30; --line:#29384f; --muted:#9eacc0; --white:#edf3fb; --green:#35c98a; --red:#ff7474; --blue:#72a7ff; }
-    * { box-sizing:border-box; }
-    body { margin:0; background:var(--bg); color:var(--white); font:15px/1.5 Arial,sans-serif; }
-    header { padding:25px max(20px, calc((100% - 1120px)/2)); background:#101a2a; border-bottom:1px solid var(--line); }
-    header h1 { margin:0; letter-spacing:.4px; } header p { margin:5px 0 0; color:var(--muted); }
-    main { max-width:1120px; margin:25px auto; padding:0 18px 35px; }
-    .notice { padding:11px 14px; border-radius:9px; margin-bottom:14px; background:#1c2c43; }
-    .success { border-left:4px solid var(--green); } .error { border-left:4px solid var(--red); }
-    .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; margin-bottom:18px; }
-    .card, section { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:17px; }
-    .metric small { color:var(--muted); display:block; } .metric strong { font-size:25px; display:block; margin-top:5px; }
-    .forms { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
-    h2 { font-size:18px; margin:0 0 14px; } h3 { font-size:15px; margin:0 0 10px; }
-    label { display:block; color:var(--muted); font-size:13px; margin:9px 0 5px; }
-    input,select { width:100%; padding:10px; border-radius:7px; border:1px solid var(--line); background:#0c1626; color:var(--white); }
-    button { margin-top:12px; border:0; border-radius:7px; padding:10px 14px; background:var(--blue); color:#071222; font-weight:bold; cursor:pointer; }
-    button.danger { background:#ff8a8a; } button.secondary { background:#34445c; color:var(--white); }
-    .tables { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
-    .wide { margin-bottom:18px; }
-    table { width:100%; border-collapse:collapse; font-size:14px; }
-    th,td { padding:9px 7px; border-bottom:1px solid var(--line); text-align:left; }
-    th { color:var(--muted); font-weight:600; }
-    .buy { color:var(--green); } .sell { color:var(--red); }
-    .empty { color:var(--muted); padding:12px 0; }
-    .bottom { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-    .tag { color:var(--muted); font-size:12px; }
-    @media(max-width:760px) { .grid { grid-template-columns:repeat(2,1fr); } .forms,.tables { grid-template-columns:1fr; } }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronosMatch | Trading Engine Demo</title>
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0b1220;
+            --panel: #131e30;
+            --line: #29384f;
+            --muted: #9eacc0;
+            --white: #edf3fb;
+            --green: #35c98a;
+            --red: #ff7474;
+            --blue: #72a7ff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--white);
+            font: 15px/1.5 Arial, sans-serif;
+        }
+
+        header {
+            padding: 25px max(20px, calc((100% - 1120px)/2));
+            background: #101a2a;
+            border-bottom: 1px solid var(--line);
+        }
+
+        header h1 {
+            margin: 0;
+            letter-spacing: .4px;
+        }
+
+        header p {
+            margin: 5px 0 0;
+            color: var(--muted);
+        }
+
+        main {
+            max-width: 1120px;
+            margin: 25px auto;
+            padding: 0 18px 35px;
+        }
+
+        .notice {
+            padding: 11px 14px;
+            border-radius: 9px;
+            margin-bottom: 14px;
+            background: #1c2c43;
+        }
+
+        .success {
+            border-left: 4px solid var(--green);
+        }
+
+        .error {
+            border-left: 4px solid var(--red);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 13px;
+            margin-bottom: 18px;
+        }
+
+        .card, section {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 17px;
+        }
+
+        .metric small {
+            color: var(--muted);
+            display: block;
+        }
+
+        .metric strong {
+            font-size: 25px;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .forms {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin: 0 0 14px;
+        }
+
+        h3 {
+            font-size: 15px;
+            margin: 0 0 10px;
+        }
+
+        label {
+            display: block;
+            color: var(--muted);
+            font-size: 13px;
+            margin: 9px 0 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 7px;
+            border: 1px solid var(--line);
+            background: #0c1626;
+            color: var(--white);
+        }
+
+        button {
+            margin-top: 12px;
+            border: 0;
+            border-radius: 7px;
+            padding: 10px 14px;
+            background: var(--blue);
+            color: #071222;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button.danger {
+            background: #ff8a8a;
+        }
+
+        button.secondary {
+            background: #34445c;
+            color: var(--white);
+        }
+
+        .tables {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .wide {
+            margin-bottom: 18px;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        td {
+            white-space: nowrap;
+        }
+
+        .buy {
+            color: var(--green);
+        }
+
+        .sell {
+            color: var(--red);
+        }
+
+        .empty {
+            color: var(--muted);
+            padding: 12px 0;
+        }
+
+        .timestamp {
+            color: var(--muted);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        @media(max-width: 760px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .forms, .tables {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
+
 <body>
+
 <header>
-  <h1>ChronosMatch</h1>
-  <p>Python Order Matching Engine · Local Demonstration Dashboard</p>
+    <h1>ChronosMatch</h1>
+    <p>Python Order Matching Engine · Local Demonstration Dashboard</p>
 </header>
+
 <main>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}<div class="notice {{ category }}">{{ message }}</div>{% endfor %}
-  {% endwith %}
 
-  <div class="grid">
-    <div class="card metric"><small>Pending BUY orders</small><strong class="buy">{{ summary.total_buy_orders }}</strong></div>
-    <div class="card metric"><small>Pending SELL orders</small><strong class="sell">{{ summary.total_sell_orders }}</strong></div>
-    <div class="card metric"><small>Completed trades</small><strong>{{ trade_summary.total_trades }}</strong></div>
-    <div class="card metric"><small>Total traded quantity</small><strong>{{ trade_summary.total_quantity }}</strong></div>
-  </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="notice {{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
 
-  <div class="forms">
-    <section>
-      <h2>Place an Order</h2>
-      <form method="post" action="{{ url_for('add_order') }}">
-        <label for="order_type">Order type</label>
-        <select id="order_type" name="order_type" required>
-          <option value="BUY">BUY</option><option value="SELL">SELL</option>
-        </select>
-        <label for="price">Price</label>
-        <input id="price" name="price" type="number" min="0.01" step="any" placeholder="e.g. 100" required>
-        <label for="quantity">Quantity</label>
-        <input id="quantity" name="quantity" type="number" min="1" step="1" placeholder="e.g. 5" required>
-        <button type="submit">Submit Order</button>
-      </form>
-    </section>
-    <section>
-      <h2>Cancel a Pending Order</h2>
-      <form method="post" action="{{ url_for('cancel_order') }}">
-        <label for="order_id">Order ID</label>
-        <input id="order_id" name="order_id" type="number" min="1" step="1" placeholder="Enter pending order ID" required>
-        <button class="danger" type="submit">Cancel Order</button>
-      </form>
-      <p class="tag">Only orders that are still pending in the order book can be cancelled.</p>
-    </section>
-  </div>
+    <!-- Dashboard Metrics -->
 
-  <div class="tables">
-    <section>
-      <h2>BUY Order Book</h2>
-      {% if buy_orders %}
-      <table><thead><tr><th>Order ID</th><th>Price</th><th>Quantity</th></tr></thead><tbody>
-      {% for order in buy_orders %}<tr><td>{{ order.order_id }}</td><td>{{ order.price }}</td><td>{{ order.quantity }}</td></tr>{% endfor %}
-      </tbody></table>
-      {% else %}<p class="empty">No pending BUY orders.</p>{% endif %}
-    </section>
-    <section>
-      <h2>SELL Order Book</h2>
-      {% if sell_orders %}
-      <table><thead><tr><th>Order ID</th><th>Price</th><th>Quantity</th></tr></thead><tbody>
-      {% for order in sell_orders %}<tr><td>{{ order.order_id }}</td><td>{{ order.price }}</td><td>{{ order.quantity }}</td></tr>{% endfor %}
-      </tbody></table>
-      {% else %}<p class="empty">No pending SELL orders.</p>{% endif %}
-    </section>
-  </div>
+    <div class="grid">
 
-  <section class="wide">
-    <h2>Order Book Summary</h2>
-    <div class="grid" style="margin:0">
-      <div><span class="tag">Best BUY price</span><h3>{{ summary.best_buy_price if summary.best_buy_price is not none else "—" }}</h3></div>
-      <div><span class="tag">Best SELL price</span><h3>{{ summary.best_sell_price if summary.best_sell_price is not none else "—" }}</h3></div>
-      <div><span class="tag">Bid-Ask spread</span><h3>{{ summary.bid_ask_spread if summary.bid_ask_spread is not none else "—" }}</h3></div>
-      <div><span class="tag">Average trade price</span><h3>{{ "%.2f"|format(trade_summary.average_trade_price) if trade_summary.average_trade_price is not none else "—" }}</h3></div>
+        <div class="card metric">
+            <small>Pending BUY orders</small>
+            <strong class="buy">{{ summary.total_buy_orders }}</strong>
+        </div>
+
+        <div class="card metric">
+            <small>Pending SELL orders</small>
+            <strong class="sell">{{ summary.total_sell_orders }}</strong>
+        </div>
+
+        <div class="card metric">
+            <small>Completed trades</small>
+            <strong>{{ trade_summary.total_trades }}</strong>
+        </div>
+
+        <div class="card metric">
+            <small>Total traded quantity</small>
+            <strong>{{ trade_summary.total_quantity }}</strong>
+        </div>
+
     </div>
-  </section>
 
-  <section class="wide">
-    <h2>Trade History</h2>
-    {% if trades %}
-    <table><thead><tr><th>No.</th><th>Incoming order</th><th>Execution price</th><th>Quantity</th></tr></thead><tbody>
-    {% for trade in trades %}<tr><td>{{ loop.index }}</td><td>{{ trade.incoming_order }}</td><td>{{ trade.price }}</td><td>{{ trade.quantity }}</td></tr>{% endfor %}
-    </tbody></table>
-    {% else %}<p class="empty">No trades executed yet. Submit compatible BUY and SELL orders to create a trade.</p>{% endif %}
-  </section>
+    <!-- Order Forms -->
 
-  <div class="bottom">
-    <span class="tag">Demo only · Data is stored in memory and resets when the server restarts.</span>
-    <form method="post" action="{{ url_for('reset') }}" onsubmit="return confirm('Reset all demo orders and trades?')">
-      <button class="secondary" type="submit">Reset Demo</button>
-    </form>
-  </div>
+    <div class="forms">
+
+        <section>
+            <h2>Place an Order</h2>
+
+            <form method="post" action="{{ url_for('add_order') }}">
+
+                <label for="order_type">Order type</label>
+
+                <select id="order_type" name="order_type" required>
+                    <option value="BUY">BUY</option>
+                    <option value="SELL">SELL</option>
+                </select>
+
+                <label for="price">Price</label>
+
+                <input
+                    id="price"
+                    name="price"
+                    type="number"
+                    min="0.01"
+                    step="any"
+                    placeholder="e.g. 100"
+                    required
+                >
+
+                <label for="quantity">Quantity</label>
+
+                <input
+                    id="quantity"
+                    name="quantity"
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="e.g. 5"
+                    required
+                >
+
+                <button type="submit">Submit Order</button>
+
+            </form>
+        </section>
+
+        <section>
+            <h2>Cancel a Pending Order</h2>
+
+            <form method="post" action="{{ url_for('cancel_order') }}">
+
+                <label for="order_id">Order ID</label>
+
+                <input
+                    id="order_id"
+                    name="order_id"
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="Enter pending order ID"
+                    required
+                >
+
+                <button class="danger" type="submit">
+                    Cancel Order
+                </button>
+
+            </form>
+
+            <p class="tag">
+                Only orders that are still pending in the order book can be cancelled.
+            </p>
+        </section>
+
+    </div>
+
+    <!-- BUY and SELL Order Books -->
+
+    <div class="tables">
+
+        <section>
+            <h2>BUY Order Book</h2>
+
+            {% if buy_orders %}
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Timestamp (UTC)</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for order in buy_orders %}
+                        <tr>
+                            <td>{{ order.order_id }}</td>
+                            <td>{{ order.price }}</td>
+                            <td>{{ order.quantity }}</td>
+                            <td class="timestamp">
+                                {{ order.timestamp|default("—", true) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% else %}
+
+            <p class="empty">No pending BUY orders.</p>
+
+            {% endif %}
+        </section>
+
+        <section>
+            <h2>SELL Order Book</h2>
+
+            {% if sell_orders %}
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Timestamp (UTC)</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for order in sell_orders %}
+                        <tr>
+                            <td>{{ order.order_id }}</td>
+                            <td>{{ order.price }}</td>
+                            <td>{{ order.quantity }}</td>
+                            <td class="timestamp">
+                                {{ order.timestamp|default("—", true) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% else %}
+
+            <p class="empty">No pending SELL orders.</p>
+
+            {% endif %}
+        </section>
+
+    </div>
+
+    <!-- Order Book Summary -->
+
+    <section class="wide">
+
+        <h2>Order Book Summary</h2>
+
+        <div class="grid" style="margin:0">
+
+            <div>
+                <span class="tag">Best BUY price</span>
+                <h3>
+                    {{ summary.best_buy_price if summary.best_buy_price is not none else "—" }}
+                </h3>
+            </div>
+
+            <div>
+                <span class="tag">Best SELL price</span>
+                <h3>
+                    {{ summary.best_sell_price if summary.best_sell_price is not none else "—" }}
+                </h3>
+            </div>
+
+            <div>
+                <span class="tag">Bid-Ask spread</span>
+                <h3>
+                    {{ summary.bid_ask_spread if summary.bid_ask_spread is not none else "—" }}
+                </h3>
+            </div>
+
+            <div>
+                <span class="tag">Average trade price</span>
+                <h3>
+                    {{ "%.2f"|format(trade_summary.average_trade_price) if trade_summary.average_trade_price is not none else "—" }}
+                </h3>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- Trade History -->
+
+    <section class="wide">
+
+        <h2>Trade History</h2>
+
+        {% if trades %}
+
+        <div class="table-wrap">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Incoming order</th>
+                        <th>Execution price</th>
+                        <th>Quantity</th>
+                        <th>Timestamp (UTC)</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for trade in trades %}
+
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ trade.incoming_order }}</td>
+                        <td>{{ trade.price }}</td>
+                        <td>{{ trade.quantity }}</td>
+                        <td class="timestamp">
+                            {{ trade.timestamp|default("—", true) }}
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <p class="empty">
+            No trades executed yet. Submit compatible BUY and SELL orders to create a trade.
+        </p>
+
+        {% endif %}
+
+    </section>
+
+    <!-- Footer and Reset -->
+
+    <div class="bottom">
+
+        <span class="tag">
+            Demo only · Data is stored in memory and resets when the server restarts.
+        </span>
+
+        <form
+            method="post"
+            action="{{ url_for('reset') }}"
+            onsubmit="return confirm('Reset all demo orders and trades?')"
+        >
+            <button class="secondary" type="submit">
+                Reset Demo
+            </button>
+        </form>
+
+    </div>
+
 </main>
+
 </body>
 </html>
