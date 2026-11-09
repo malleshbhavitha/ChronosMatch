@@ -146,6 +146,22 @@
             color: var(--white);
         }
 
+        /* CSV Download Button */
+        .download-link {
+            display: inline-block;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            border-radius: 7px;
+            background: var(--blue);
+            color: #071222;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .download-link:hover {
+            opacity: 0.85;
+        }
+
         .tables {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -427,9 +443,7 @@
             {% endif %}
         </section>
 
-    </div>
-
-    <!-- Order Book Summary -->
+    </div>    <!-- Order Book Summary -->
 
     <section class="wide">
 
@@ -474,6 +488,14 @@
     <section class="wide">
 
         <h2>Trade History</h2>
+
+        <!-- Download CSV Button -->
+        <a
+            class="download-link"
+            href="{{ url_for('download_trades') }}"
+        >
+            Download Trade History (CSV)
+        </a>
 
         {% if trades %}
 
